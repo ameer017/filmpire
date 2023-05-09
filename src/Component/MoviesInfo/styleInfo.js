@@ -53,6 +53,20 @@ export default makeStyles((theme) => ({
             flexDirection: "column",
         },
     },
+    modal:{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    videos: {
+        width: '50%',
+        height: '50%',
+        borderRadius: '20px',
+        [theme.breakpoints.down('sm')] : {
+            width: '90%',
+            height: '90%'
+        }
+    }
 }));
 
 
