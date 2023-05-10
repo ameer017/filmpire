@@ -3,20 +3,21 @@ import { Box, CircularProgress, useMediaQuery, Typography } from '@mui/material'
 import { useSelector } from 'react-redux';
 import { selectGenre } from '../../features/currentGenres';
 import { useGetMoviesQuery } from '../Services/TMDB';
-import { Movielist, Pagination, Sounds } from '..';
+import { Movielist, Pagination } from '..';
 
 const Movies = () => {
   const [page, setPage] = useState(1)
   const {genreIdOrCategoryName, searchQuery} = useSelector((state) => state.currentGenres)
   const {data, error, isFetching} = useGetMoviesQuery({genreIdOrCategoryName, page, searchQuery});
 
-  // const lg = useGetMoviesQuery((theme) => )
+  const lg = useMediaQuery((theme) => theme.breakpoints.only('lg'))
+  const numberOfMovies = lg ? 16 : 18
+  //  
 
  if(isFetching) {
    return (
      <Box display='flex'>
        <CircularProgress size='4rem'/>
-       {/* <Sounds /> */}
      </Box>
    )
  }
@@ -35,7 +36,7 @@ const Movies = () => {
  if (error) return 'An error has occurred'
  return (
    <div>
-     <Movielist movies={data}/>
+     <Movielist movies={data} numberOfMovies={numberOfMovies}/>
      <Pagination currentPage={page} setPage={setPage} totalPage={data.total_pages} />
    </div>
  )

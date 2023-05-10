@@ -1,38 +1,67 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { Grid, Modal, Typography, Button, ButtonGroup, Box, CircularProgress, useMediaQuery, Rating } from '@mui/material'
 import { Theaters, Movie as MovieIcon, Language, PlusOne, Favorite, FavoriteBorderOutlined, Remove, ArrowBack,  } from '@mui/icons-material'
 import { Link, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
 import useStyles from './styleInfo'
-import { useGetMovieQuery, useGetRecommendationsQuery } from '../Services/TMDB'
+import { useGetMovieQuery, useGetRecommendationsQuery, useGetListQuery } from '../Services/TMDB'
 import  genresIcons from '../../assets/genres'
 import Movielist from '../MovieList/Movielist'
+import { userSelector } from '../../features/auth'
+import { TypeWriter } from 'react-typewritter'
 
 
 const Moviesinfo = () => {
+  const {user} = useSelector(userSelector)
   const  {id} = useParams()
   const classes = useStyles()
   const dispatch = useDispatch()
   const [open, setOpen] = useState(false)
 
-  const isMovieFavorited = true
-  const isMovieListed = true
+  const [isMovieFavorited, setisMovieFavorited] = useState(false)
+  const [isMovieWatchList, setisMovieWatchList] = useState(false)
+   
+  const addToFavorite = async() => {
+    await axios.post(`https://api.themoviedb.org/3/account/${user.id}/favorite?api_key=${import.meta.env.VITE_APP_TMDB_KEY}&session_id=${localStorage.getItem('session_id')}`, {
+      media_type: 'movie',
+      media_id : id,
+      favorite: !isMovieFavorited
+    })
 
-  const addToFavorite = () => {
-
+    setisMovieFavorited((prev) => !prev)
   }
-  const addToWatchList = () => {
 
+  const addToWatchList = async () => {
+    await axios.post(`https://api.themoviedb.org/3/account/${user.id}/watchlist?api_key=${import.meta.env.VITE_APP_TMDB_KEY}&session_id=${localStorage.getItem('session_id')}`, {
+      media_type: 'movie',
+      media_id : id,
+      watchlist: !isMovieWatchList
+    })
+
+    setisMovieWatchList((prev) => !prev)
   }
 
+  
   const {data, isFetching, error} = useGetMovieQuery(id);
 
   const {data : recommendations, isFetching : isRecommendationsFetching} =
    useGetRecommendationsQuery({list: '/recommendations',
     movie_id: id
   })
-  // console.log(recommendations)
+
+  const {data: favoriteMovies} = useGetListQuery({listName: 'favorite/movies', accountId: user.id, sessionId: localStorage.getItem('session_id'), page : 1})
+  const {data: watchListMovies} = useGetListQuery({listName: 'watchlist/movies', accountId: user.id, sessionId: localStorage.getItem('session_id'), page : 1})
+
+  useEffect(() => {
+    setisMovieWatchList(!!favoriteMovies?.results.find((movie) => movie.id === data?.id))
+  }, [favoriteMovies, data])
+
+  useEffect(() => {
+    setisMovieFavorited(!!watchListMovies?.results.find((movie) => movie.id === data?.id))
+  }, [watchListMovies, data])
+
+
 
   if (isFetching) {
     return (
@@ -51,11 +80,11 @@ const Moviesinfo = () => {
       </Box>
     )
   }
-  // const  {id} = useParams()
-  // const classes = useStyles()
+
+  
   return (
     <Grid container className={classes.containerSpaceAround} >
-      <Grid item sm={12} lg={4}>
+      <Grid item sm={12} lg={4} style={{display: 'flex', mt: '30px'}}>
           <img className={classes.poster}
           src={`https://image.tmdb.org/t/p/w500/${data ?.poster_path}`} alt={data?.title}/>
       </Grid>
@@ -96,7 +125,8 @@ const Moviesinfo = () => {
           </Grid>
           <Typography variant='h5' gutterBottom style={{marginTop: '1'}}> Overview </Typography>
           <Typography style={{marginBottom: "2rem"}}>
-            {data?.overview}
+          
+            <TypeWriter elementType='span' text={data?.overview} />
           </Typography>
 
           <Grid item container style={{marginTop: '2rem'}}>
@@ -117,7 +147,7 @@ const Moviesinfo = () => {
                       isMovieFavorited ? 'UnFavorite' : 'Favorite'
                     }
                   </Button>
-                  <Button onClick={addToWatchList} endIcon={isMovieListed ? <Remove/> :  <PlusOne/>}>
+                  <Button onClick={addToWatchList} endIcon={isMovieWatchList ? <Remove/> :  <PlusOne/>}>
                    WatchList
                   </Button>
                   <Button endIcon={<ArrowBack/>} sx={{borderColor: 'primary.main'}}>

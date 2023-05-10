@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { AppBar, IconButton, Toolbar, Drawer, Button, Avatar, useMediaQuery } from '@mui/material'
 import { Menu, AccountCircle, Brightness4, Brightness7 } from '@mui/icons-material'
 import { Link } from 'react-router-dom';
@@ -6,6 +6,7 @@ import useStyles from './styleNav'
 import { useTheme } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, userSelector } from '../../features/auth';
+import { ColorModeContext } from '../../utilities/ToggleColorMode';
 
 import { Search, Sidebar } from '..'
 import { fetchToken, moviesApi, createSessionId } from '../../utilities';
@@ -18,6 +19,7 @@ const NavBar = () => {
  const isMobile = useMediaQuery("(max-width: 600px)");
  const theme = useTheme();
  const dispatch = useDispatch();
+ const colorMode = useContext(ColorModeContext)
 
 //  console.log(user);
  const token = localStorage.getItem("request_token");
@@ -60,7 +62,7 @@ const NavBar = () => {
            </IconButton>
          )}
 
-         <IconButton color="inherit" sx={{ ml: 1 }} onClick={() => {}}>
+         <IconButton color="inherit" sx={{ ml: 1 }} onClick={colorMode.toggleColorMode}>
            {theme.palette.mode === "dark" ? <Brightness7 /> : <Brightness4 />}
          </IconButton>
 
